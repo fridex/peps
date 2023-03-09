@@ -1,0 +1,193 @@
+PEP: 9999
+Title: Recording provenance of installed packages
+Author: Fridolín Pokorný <fridolin.pokorny at gmail.com>
+Sponsor: Donald Stufft <donald@stufft.io>
+PEP-Delegate:
+Discussions-To: https://discuss.python.org/t/pep-705-recording-provenance-of-installed-packages/23340
+Status: Draft
+Type: Process
+Content-Type: text/x-rst
+Created: 09-Mar-2023
+Post-History:
+
+Abstract
+========
+
+This PEP describes a way to record provenance of Python distributions
+installed.  The record is created by an installer and is available to users in
+a form of a JSON file ``provenance_url.json`` in ``.dist-info`` directory. The
+mentioned JSON file captures additional metadata to allow recording URL to a
+Python distribution together with the installed Python distribution hash. This
+proposal is built on top of :pep:`610` following `its corresponding canonical
+PyPA spec
+<https://packaging.python.org/en/latest/specifications/direct-url/>`__ and
+complements ``direct_url.json`` with ``provenance_url.json`` file when packages
+are identified by a name, and either a version
+
+Motivation
+==========
+
+Installing a Python package involves downloading a distribution from an index
+and extracting its content to an appropriate place. After the installation
+process is done, information about the distribution used as well as its source
+is generally lost. Nevertheless, there are use cases for keeping records of
+distributions used for installing packages and their provenance.
+
+Python wheels can be built with different compiler flags or supporting
+different wheel tags.  In both cases, users might get into a situation in which
+multiple wheels might be considered by installers (possibly from different
+package indexes) and immediately finding out which wheel file was actually used
+during the installation might be helpful. This way, tools reporting software
+installed, such as tools reporting SBOM (Software Bill of Material), might give
+more accurate reports.
+
+The motivation described in this PEP is an extension to :pep:`610`.  Besides
+stating information about packages installed from an URL, installers SHOULD
+record information also for packages installed from Python package indexes when
+identified by their name, and optionally their version.
+
+Specification
+=============
+
+The ``provenance_url.json`` file SHOULD be created in the ``*.dist-info``
+directory by installers when installing a distribution identified by their
+name, and optionally their version specifier.
+
+This file MUST NOT be created when installing a distribution from a requirement
+specifying a direct URL reference (including a VCS URL).
+
+Only one of ``provenance_url.json`` and ``direct_url.json`` from :pep:`610`
+files MAY be present in ``*.dist-info`` directory.
+
+The ``provenance_url.json`` JSON file MUST be a dictionary, compliant with `RFC
+8259 <https://datatracker.ietf.org/doc/html/rfc8259.html>`__ and UTF-8 encoded.
+
+If present, it MUST contain exactly two keys. The first one is ``url``, with
+type ``string``.  The second key MUST be ``archive_info`` with a value defined
+bellow.
+
+Following :pep:`610`, the ``url`` field MUST be stripped of any sensitive
+authentication information, for security reasons.
+
+The user:password section of the URL MAY however be composed of environment
+variables, matching the following regular expression::
+
+    \$\{[A-Za-z0-9-_]+\}(:\$\{[A-Za-z0-9-_]+\})?
+
+Additionally, the user:password section of the URL MAY be a well-known,
+non-security sensitive string. A typical example is ``git`` in the case of an
+URL such as ``ssh://git@gitlab.com``.
+
+The ``archive_info`` key MUST be present as a dictionary and MUST state at
+least one of the following keys:
+
+- The ``hashes`` key SHOULD be present as a dictionary mapping a hash name to a
+  hex encoded digest of the file.
+
+  Multiple hashes can be included, and it is up to the consumer to decide what
+  to do with multiple hashes (it may validate all of them or a subset of them, or
+  nothing at all).
+
+  These hash names SHOULD always be normalized to be lowercase.
+
+  Any hash algorithm available via ``hashlib`` (specifically any that can be
+  passed to ``hashlib.new()`` and do not require additional parameters) can be
+  used as a key for the hashes dictionary. At least one secure algorithm from
+  ``hashlib.algorithms_guaranteed`` SHOULD always be included. At time of
+  writing, ``sha256`` specifically is recommended.
+
+- A ``hash`` key (type ``string``) MAY be present for compatibility purposes
+  with :pep:`610`, with value ``<hash-algorithm>=<expected-hash>``.
+
+Producers of the data structure SHOULD emit the ``hashes``. Producers SHOULD
+continue to emit the ``hash`` key in contexts where they did so before, so as
+to keep compatibility with :pep:`610` for existing clients.
+
+When both the ``hash`` and ``hashes`` keys are present, the hash represented in
+the ``hash`` key MUST also be present in the ``hashes`` dictionary, so
+consumers can consider the ``hashes`` key only if it is present, and fall back
+to ``hash`` otherwise.
+
+Examples
+========
+
+Examples provenance_url.json
+----------------------------
+
+.. code:: json
+
+  {
+    "archive_info": {
+      "hash": "sha256=236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f",
+      "hashes": {
+        "sha256": "236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f"
+      }
+    },
+    "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
+  }
+
+
+Example pip commands and their effect on provenance_url.json and direct_url.json
+--------------------------------------------------------------------------------
+
+Commands that generate a ``direct_url.json`` file, following :pep:`610`:
+
+* ``pip install https://example.com/app-1.0.tgz``
+* ``pip install https://example.com/app-1.0.whl``
+* ``pip install “git+https://example.com/repo/app.git#egg=app&subdirectory=setup”``
+* ``pip install ./app``
+* ``pip install file:///home/user/app``
+* ``pip install –editable "git+https://example.com/repo/app.git#egg=app&subdirectory=setup"`` (in which case, url will be the local directory where the git repository has been cloned to, and dir_info will be present with "editable": true and no vcs_info will be set)
+* ``pip install -e ./app``
+
+Commands that generate a ``provenance_url.json`` file:
+
+* ``pip install app``
+* ``pip install app~=2.2.0``
+* ``pip install app –no-index –find-links "https://example.com/"``
+
+Rejected Ideas
+==============
+
+Naming the file direct_url.json instead of provenance_url.json
+--------------------------------------------------------------
+
+To preserve backwards compatibility with :pep:`610`, the file cannot be named
+``direct_url.json`` (from :pep:`610`):
+
+  This file MUST NOT be created when installing a distribution from an other
+  type of requirement (i.e. name plus version specifier).
+
+Backwards Compatibility
+=======================
+
+Since this PEP specifies a new file in the ``*.dist-info`` directory, there are
+no backwards compatibility implications to consider in ``provenance_url.json``
+file itself. Also, this proposal does not make any changes to the
+``direct_url.json`` described in :pep:`610` and `its corresponding canonical
+PyPA spec
+<https://packaging.python.org/en/latest/specifications/direct-url/>`__.
+
+The content of ``provenance_url.json`` file was designed in a way to eventually
+allow installers reuse some of the logic supporting :pep:`610` when a
+direct URL refers to a source archive or a wheel.
+
+Acknowledgements
+================
+
+Thanks to Dustin Ingram, Brett Cannon, Paul Moore for the initial discussion in
+which this idea originated.
+
+Thanks to Donald Stufft, Ofek Lev, and Trishank Kuppusamy for early feedback
+and support to work on this PEP.
+
+Thanks to Stéphane Bidoul and Chris Jerdonek for :pep:`610`.
+
+Last, but not least, thanks to Donald Stufft for sponsoring this PEP.
+
+Copyright
+=========
+
+This document is placed in the public domain or under the CC0-1.0-Universal
+license, whichever is more permissive.
+
