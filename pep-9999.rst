@@ -22,7 +22,7 @@ proposal is built on top of :pep:`610` following `its corresponding canonical
 PyPA spec
 <https://packaging.python.org/en/latest/specifications/direct-url/>`__ and
 complements ``direct_url.json`` with ``provenance_url.json`` file when packages
-are identified by a name, and either a version
+are identified by a name, and either a version.
 
 Motivation
 ==========
@@ -61,8 +61,8 @@ specifying a direct URL reference (including a VCS URL).
 Only one of ``provenance_url.json`` and ``direct_url.json`` from :pep:`610`
 files MAY be present in ``*.dist-info`` directory.
 
-The ``provenance_url.json`` JSON file MUST be a dictionary, compliant with `RFC
-8259 <https://datatracker.ietf.org/doc/html/rfc8259.html>`__ and UTF-8 encoded.
+The ``provenance_url.json`` JSON file MUST be a dictionary, compliant with
+:rfc:`8259` and UTF-8 encoded.
 
 If present, it MUST contain exactly two keys. The first one is ``url``, with
 type ``string``.  The second key MUST be ``archive_info`` with a value defined
@@ -199,8 +199,8 @@ The following changes were done to pip to support this PEP:
   <https://github.com/fridex/pip/pull/1/>`__
 
 .. [2] `Changes to pip to support the decision for creating
-  ``provenance_url.json`` instead of stating provenance in already existing
-  ``direct_url.json`` <https://github.com/fridex/pip/pull/2/>`__
+  provenance_url.json instead of stating provenance in already existing
+  direct_url.json <https://github.com/fridex/pip/pull/2/>`__
 
 Acknowledgements
 ================
