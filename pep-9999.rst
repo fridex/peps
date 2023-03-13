@@ -37,9 +37,11 @@ Python wheels can be built with different compiler flags or supporting
 different wheel tags.  In both cases, users might get into a situation in which
 multiple wheels might be considered by installers (possibly from different
 package indexes) and immediately finding out which wheel file was actually used
-during the installation might be helpful. This way, tools reporting software
-installed, such as tools reporting SBOM (Software Bill of Material), might give
-more accurate reports.
+during the installation might be helpful. This way, developers can use
+information about wheels during debugging issues to make sure a desired wheel
+was actually installed. Another use case could be tools reporting software
+installed, such as tools reporting SBOM (Software Bill of Material), that might
+give more accurate reports.
 
 The motivation described in this PEP is an extension to :pep:`610`.  Besides
 stating information about packages installed from an URL, installers SHOULD
@@ -146,6 +148,8 @@ Commands that generate a ``provenance_url.json`` file:
 * ``pip install app~=2.2.0``
 * ``pip install app –no-index –find-links "https://example.com/"``
 
+This behaviour can be tested using changes to pip introduced in [1]_.
+
 Rejected Ideas
 ==============
 
@@ -157,6 +161,20 @@ To preserve backwards compatibility with :pep:`610`, the file cannot be named
 
   This file MUST NOT be created when installing a distribution from an other
   type of requirement (i.e. name plus version specifier).
+
+The change might introduce backwards compatibility issues for consumers of
+``direct_url.json`` who rely on its presence only when distributions are
+installed using a direct URL reference.
+
+Deprecate direct_url.json and use only provenance_url.json
+----------------------------------------------------------
+
+File ``direct_url.json`` is already well established in :pep:`610` and is
+already used by installers. For example, ``pip`` uses ``direct_url.json`` to
+report a direct URL reference on ``pip freeze``. Deprecating
+``direct_url.json`` would require additional changes to the ``pip freeze``
+implementation in pip (see [2]_) and could introduce backwards compatibility
+issues for already existing ``direct_url.json`` consumers.
 
 Backwards Compatibility
 =======================
@@ -171,6 +189,18 @@ PyPA spec
 The content of ``provenance_url.json`` file was designed in a way to eventually
 allow installers reuse some of the logic supporting :pep:`610` when a
 direct URL refers to a source archive or a wheel.
+
+References
+==========
+
+The following changes were done to pip to support this PEP:
+
+.. [1] `A patch to pip supporting this feature
+  <https://github.com/fridex/pip/pull/1/>`__
+
+.. [2] `Changes to pip to support the decision for creating
+  ``provenance_url.json`` instead of stating provenance in already existing
+  ``direct_url.json`` <https://github.com/fridex/pip/pull/2/>`__
 
 Acknowledgements
 ================
