@@ -38,13 +38,13 @@ different wheel tags.  In both cases, users might get into a situation in which
 multiple wheels might be considered by installers (possibly from different
 package indexes) and immediately finding out which wheel file was actually used
 during the installation might be helpful. This way, developers can use
-information about wheels during debugging issues to make sure a desired wheel
+information about wheels to debug issues making sure the desired wheel
 was actually installed. Another use case could be tools reporting software
 installed, such as tools reporting SBOM (Software Bill of Material), that might
 give more accurate reports.
 
 The motivation described in this PEP is an extension to :pep:`610`.  Besides
-stating information about packages installed from an URL, installers SHOULD
+stating information about packages installed using a direct URL, installers SHOULD
 record information also for packages installed from Python package indexes when
 identified by their name, and optionally their version.
 
@@ -113,8 +113,8 @@ to ``hash`` otherwise.
 Examples
 ========
 
-Examples provenance_url.json
-----------------------------
+Example provenance_url.json
+---------------------------
 
 .. code:: json
 
@@ -139,7 +139,7 @@ Commands that generate a ``direct_url.json`` file, following :pep:`610`:
 * ``pip install “git+https://example.com/repo/app.git#egg=app&subdirectory=setup”``
 * ``pip install ./app``
 * ``pip install file:///home/user/app``
-* ``pip install –editable "git+https://example.com/repo/app.git#egg=app&subdirectory=setup"`` (in which case, url will be the local directory where the git repository has been cloned to, and dir_info will be present with "editable": true and no vcs_info will be set)
+* ``pip install –editable "git+https://example.com/repo/app.git#egg=app&subdirectory=setup"`` (in which case, ``url`` will be the local directory where the git repository has been cloned to, and ``dir_info`` will be present with ``"editable": true`` and no ``vcs_info`` will be set)
 * ``pip install -e ./app``
 
 Commands that generate a ``provenance_url.json`` file:
@@ -195,7 +195,7 @@ References
 
 The following changes were done to pip to support this PEP:
 
-.. [1] `A patch to pip supporting this feature
+.. [1] `A patch to pip introducing provenance_url.json as discussed in this PEP
   <https://github.com/fridex/pip/pull/1/>`__
 
 .. [2] `Changes to pip to support the decision for creating
