@@ -142,7 +142,7 @@ Examples of an invalid provenance_url.json
 ------------------------------------------
 
 The following example includes ``hash`` key in the ``archive_info`` dictionary
-as originally designed in :pep:`610`. The ```hash``` key MUST NOT be present to
+as originally designed in :pep:`610`. The ``hash`` key MUST NOT be present to
 prevent from any possible confusion with ``hashes`` and additional checks that
 would be required to keep hash values in sync.
 
@@ -158,8 +158,9 @@ would be required to keep hash values in sync.
     "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
   }
 
-Another example demonstrates invalid hash name. The referenced hash does not
-correspond to canonical hash name described in this PEP.
+Another example demonstrates an invalid hash name. The referenced hash does not
+correspond to canonical hash name described in this PEP and `Python docs
+<https://docs.python.org/3/library/hashlib.html#hashlib.hash.name>`__.
 
 .. code:: json
 
