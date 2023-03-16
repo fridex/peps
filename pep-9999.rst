@@ -83,7 +83,7 @@ URL such as ``ssh://git@gitlab.com``.
 The ``archive_info`` key MUST be present as a dictionary and MUST state at
 least one of the following keys:
 
-- The ``hashes`` key SHOULD be present as a dictionary mapping a hash name to a
+- The ``hashes`` key MUST be present as a dictionary mapping a hash name to a
   hex-encoded digest of the file.
 
   Multiple hashes can be included, and it is up to the consumer to decide what
