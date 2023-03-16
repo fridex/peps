@@ -97,7 +97,7 @@ hashes ``shake_128`` and ``shake_256``:
   >>> sorted(hashlib.algorithms_guaranteed - {"shake_128", "shake_256", "sha1", "md5"})
   ['blake2b', 'blake2s', 'sha224', 'sha256', 'sha384', 'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512', 'sha512']
 
-Each hash MUST be referenced by a canonical name of the hash, always lower case.
+Each hash MUST be referenced by the canonical name of the hash, always lower case.
 
 Hashes ``sha1`` and ``md5`` MUST NOT be present, respecting security
 limitations of these hash algorithms. On the other hand, hash ``sha256`` SHOULD
