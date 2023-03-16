@@ -80,41 +80,71 @@ Additionally, the user:password section of the URL MAY be a well-known,
 non-security sensitive string. A typical example is ``git`` in the case of an
 URL such as ``ssh://git@gitlab.com``.
 
-The ``archive_info`` key MUST be present as a dictionary and MUST state at
-least one of the following keys:
+The value of ``archive_info`` MUST be a dictionary with a single key
+``hashes``.  The ``hashes`` key is a dictionary mapping a hash name to a
+hex-encoded digest of the file. Multiple hashes can be included, and it is up
+to the consumer to decide what to do with multiple hashes (it may validate all
+of them or a subset of them, or nothing at all).
 
-- The ``hashes`` key MUST be present as a dictionary mapping a hash name to a
-  hex-encoded digest of the file.
+Each hash MUST be one of the single argument hashes provided by
+``hashlib.algorithms_guaranteed`` except for ``sha1`` and ``md5`` hashes. At
+the time of writing this PEP, the listing does not include multi-argument
+hashes ``shake_128`` and ``shake_256``:
 
-  Multiple hashes can be included, and it is up to the consumer to decide what
-  to do with multiple hashes (it may validate all of them or a subset of them, or
-  nothing at all).
+.. code-block:: python
 
-  These hash names SHOULD always be normalized to be lowercase.
+  >>> import hashlib
+  >>> sorted(hashlib.algorithms_guaranteed - {"shake_128", "shake_256", "sha1", "md5"})
+  ['blake2b', 'blake2s', 'sha224', 'sha256', 'sha384', 'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512', 'sha512']
 
-  Any hash algorithm available via ``hashlib`` (specifically any that can be
-  passed to ``hashlib.new()`` and do not require additional parameters) can be
-  used as a key for the hashes dictionary. At least one secure algorithm from
-  ``hashlib.algorithms_guaranteed`` SHOULD always be included. At the time of
-  writing, ``sha256`` specifically is recommended.
+Each hash MUST be referenced by a canonical name of the hash, always lower case.
 
-- A ``hash`` key (type ``string``) MAY be present for compatibility purposes
-  with :pep:`610`, with value ``<hash-algorithm>=<expected-hash>``.
-
-Producers of the data structure SHOULD emit the ``hashes``. Producers SHOULD
-continue to emit the ``hash`` key in contexts where they did so before, so as
-to keep compatibility with :pep:`610` for existing clients.
-
-When both the ``hash`` and ``hashes`` keys are present, the hash represented in
-the ``hash`` key MUST also be present in the ``hashes`` dictionary, so
-consumers can consider the ``hashes`` key only if it is present, and fall back
-to ``hash`` otherwise.
+Hashes ``sha1`` and ``md5`` MUST NOT be present, respecting security
+limitations of these hash algorithms. On the other hand, hash ``sha256`` SHOULD
+be included.
 
 Examples
 ========
 
-Example provenance_url.json
----------------------------
+Examples of a valid provenance_url.json
+---------------------------------------
+
+A valid ``provenance_url.json`` stating multiple hashes:
+
+.. code:: json
+
+  {
+    "archive_info": {
+      "hashes": {
+        "blake2s": "fffeaf3d0bd71dc960ca2113af890a2f2198f2466f8cd58ce4b77c1fc54601ff",
+        "sha256": "236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f",
+        "sha3_256": "c856930e0f707266d30e5b48c667a843d45e79bb30473c464e92dfa158285eab",
+        "sha512": "6bad5536c30a0b2d5905318a1592948929fbac9baf3bcf2e7faeaf90f445f82bc2b656d0a89070d8a6a9395761f4793c83187bd640c64b2656a112b5be41f73d"
+      }
+    },
+    "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
+  }
+
+A valid ``provenance_url.json`` stating a single hash entry:
+
+.. code:: json
+
+  {
+    "archive_info": {
+      "hashes": {
+        "sha256": "236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f"
+      }
+    },
+    "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
+  }
+
+Examples of an invalid provenance_url.json
+------------------------------------------
+
+The following example includes ``hash`` key in the ``archive_info`` dictionary
+as originally designed in :pep:`610`. The ```hash``` key MUST NOT be present to
+prevent from any possible confusion with ``hashes`` and additional checks that
+would be required to keep hash values in sync.
 
 .. code:: json
 
@@ -123,6 +153,20 @@ Example provenance_url.json
       "hash": "sha256=236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f",
       "hashes": {
         "sha256": "236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f"
+      }
+    },
+    "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
+  }
+
+Another example demonstrates invalid hash name. The referenced hash does not
+correspond to canonical hash name described in this PEP.
+
+.. code:: json
+
+  {
+    "archive_info": {
+      "hashes": {
+        "SHA-256": "236bcb61156d76c4b8a05821b988c7b8c35bf0da28a4b614e8d6ab5212c25c6f"
       }
     },
     "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
@@ -210,6 +254,9 @@ which this idea originated.
 
 Thanks to Donald Stufft, Ofek Lev, and Trishank Kuppusamy for early feedback
 and support to work on this PEP.
+
+Thanks to Gregory P. Smith for reviewing this PEP and providing valuable
+suggestions.
 
 Thanks to Stéphane Bidoul and Chris Jerdonek for :pep:`610`.
 
