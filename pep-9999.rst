@@ -68,8 +68,12 @@ If present, it MUST contain exactly two keys. The first one is ``url``, with
 type ``string``.  The second key MUST be ``archive_info`` with a value defined
 below.
 
-Following :pep:`610`, the ``url`` field MUST be stripped of any sensitive
-authentication information, for security reasons.
+The ``url`` field MUST state a URL to the installed distribution. If a wheel is
+built from a source distribution, the ``url`` field MUST point to the used
+source distribution. On the other hand, when a wheel is installed, the
+``url`` field MUST keep a URL of the installed wheel. Following :pep:`610`, the
+``url`` field MUST be stripped of any sensitive authentication information, for
+security reasons.
 
 The user:password section of the URL MAY however be composed of environment
 variables, matching the following regular expression::
@@ -82,9 +86,10 @@ URL such as ``ssh://git@gitlab.com``.
 
 The value of ``archive_info`` MUST be a dictionary with a single key
 ``hashes``.  The ``hashes`` key is a dictionary mapping a hash name to a
-hex-encoded digest of the file. Multiple hashes can be included, and it is up
-to the consumer to decide what to do with multiple hashes (it may validate all
-of them or a subset of them, or nothing at all).
+hex-encoded digest of the file referenced by the ``url`` field. Multiple hashes
+can be included, and it is up to the consumer to decide what to do with
+multiple hashes (it may validate all of them or a subset of them, or nothing at
+all).
 
 Each hash MUST be one of the single argument hashes provided by
 ``hashlib.algorithms_guaranteed`` except for ``sha1`` and ``md5`` hashes. At
@@ -102,6 +107,11 @@ Each hash MUST be referenced by the canonical name of the hash, always lower cas
 Hashes ``sha1`` and ``md5`` MUST NOT be present, respecting security
 limitations of these hash algorithms. On the other hand, hash ``sha256`` SHOULD
 be included.
+
+Installers that cache installed distributions from an index SHOULD keep
+information related to the cached distribution, so that
+```provenance_url.json`` file can be created even when installing distributions
+from installer's cache.
 
 Examples
 ========
@@ -137,6 +147,18 @@ A valid ``provenance_url.json`` stating a single hash entry:
     },
     "url": "https://files.pythonhosted.org/packages/07/51/2c0959c5adf988c44d9e1e0d940f5b074516ecc87e96b1af25f59de9ba38/pip-23.0.1-py3-none-any.whl"
   }
+
+A valid ``provenance_url.json`` stating a source distribution which was used to
+build and install a wheel:
+
+{
+  "archive_info": {
+    "hashes": {
+      "sha256": "8bfe29f17c10e2f2e619de8033a07a224058d96b3bfe2ed61777596f7ffd7fa9"
+    }
+  },
+  "url": "https://files.pythonhosted.org/packages/1d/43/ad8ae671de795ec2eafd86515ef9842ab68455009d864c058d0c3dcf680d/micropipenv-0.0.1.tar.gz"
+}
 
 Examples of an invalid provenance_url.json
 ------------------------------------------
