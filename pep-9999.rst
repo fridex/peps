@@ -166,9 +166,10 @@ Examples of an invalid provenance_url.json
 ------------------------------------------
 
 The following example includes ``hash`` key in the ``archive_info`` dictionary
-as originally designed in :pep:`610`. The ``hash`` key MUST NOT be present to
-prevent from any possible confusion with ``hashes`` and additional checks that
-would be required to keep hash values in sync.
+as originally designed in :pep:`610` and the data structure documented in [3]_.
+The ``hash`` key MUST NOT be present to prevent from any possible confusion
+with ``hashes`` and additional checks that would be required to keep hash
+values in sync.
 
 .. code:: json
 
@@ -282,6 +283,9 @@ The following changes were done to pip to support this PEP:
 .. [2] `Changes to pip to support the decision for creating
   provenance_url.json instead of stating provenance in already existing
   direct_url.json <https://github.com/fridex/pip/pull/2/>`__
+
+.. [3] `Direct URL Data Structure
+  <https://packaging.python.org/en/latest/specifications/direct-url-data-structure/>`__
 
 Acknowledgements
 ================
