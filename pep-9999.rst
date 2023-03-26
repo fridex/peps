@@ -110,7 +110,7 @@ be included.
 
 Installers that cache installed distributions from an index SHOULD keep
 information related to the cached distribution, so that
-```provenance_url.json`` file can be created even when installing distributions
+``provenance_url.json`` file can be created even when installing distributions
 from installer's cache.
 
 Examples
@@ -248,8 +248,8 @@ report a direct URL reference on ``pip freeze``. Deprecating
 implementation in pip (see [2]_) and could introduce backwards compatibility
 issues for already existing ``direct_url.json`` consumers.
 
-Keeping hash key in the archive_info dictionary
------------------------------------------------
+Keeping the hash key in the archive_info dictionary
+---------------------------------------------------
 
 :pep:`610` and `its corresponding canonical PyPA spec
 <https://packaging.python.org/en/latest/specifications/direct-url/>`__ discuss
