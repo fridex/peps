@@ -258,6 +258,49 @@ By doing so we eliminate possible redundancy in the file, possible confusion,
 and any additional checks that would need to be done to make sure hashes are in
 sync.
 
+Making the hashes field optional
+--------------------------------
+
+:pep:`610` and `its corresponding canonical PyPA spec
+<https://packaging.python.org/en/latest/specifications/direct-url/>`__
+recommend stating the ``hashes`` field of the ``archive_info`` in the
+``direct_url.json`` file but allows ignoring it under certain circumstances
+following :rfc:`2119`:
+
+  A hashes key SHOULD be present as a dictionary mapping a hash name to a hex
+  encoded digest of the file.
+
+This PEP enforces availability of the ``hashes`` field of the ``archive_info``
+in the ``provenance_url.json`` file if ``provenance_url.json`` file is created:
+
+  The value of ``archive_info`` MUST be a dictionary with a single key
+  ``hashes``.
+
+By doing so, consumers of ``provenance_url.json`` file can perform check on
+artifact digests when ``provenance_url.json`` file is created by installers.
+
+Open Issues
+===========
+
+Availability of the provenance_url.json file in Conda
+-----------------------------------------------------
+
+We would like to get feedback on the ``provenance_url.json`` file by Conda
+maintainers or developers. It is not clear whether Conda would like to adopt
+the ``provenance_url.json`` file.
+
+Using provenance_url.json in downstream installers
+--------------------------------------------------
+
+The proposed ``provenance_url.json`` file was meant to be adopted primarily by
+Python installers. Other installers, such as apt or dnf, might record
+provenance of the installed downstream Python distributions in their specific
+way that can be specific to downstream package management. The proposed file is
+not expected to be created by these downstream package installers and thus they
+were intentionally left out of this PEP. However, any input by developers or
+maintainers of these installers is valuable to possibly enrich the
+``provenance_url.json`` file with information that would help in some way.
+
 Backwards Compatibility
 =======================
 
@@ -308,4 +351,3 @@ Copyright
 
 This document is placed in the public domain or under the CC0-1.0-Universal
 license, whichever is more permissive.
-
