@@ -202,7 +202,8 @@ correspond to canonical hash name described in this PEP and `Python docs
 Example pip commands and their effect on provenance_url.json and direct_url.json
 --------------------------------------------------------------------------------
 
-Commands that generate a ``direct_url.json`` file, following :pep:`610`:
+Commands that generate a ``direct_url.json`` file but do not generate
+```provenance_url.json`` file. These examples follow examples from :pep:`610`:
 
 * ``pip install https://example.com/app-1.0.tgz``
 * ``pip install https://example.com/app-1.0.whl``
@@ -212,7 +213,8 @@ Commands that generate a ``direct_url.json`` file, following :pep:`610`:
 * ``pip install –editable "git+https://example.com/repo/app.git#egg=app&subdirectory=setup"`` (in which case, ``url`` will be the local directory where the git repository has been cloned to, and ``dir_info`` will be present with ``"editable": true`` and no ``vcs_info`` will be set)
 * ``pip install -e ./app``
 
-Commands that generate a ``provenance_url.json`` file:
+Commands that generate a ``provenance_url.json`` file but do not generate
+``direct_url.json`` file:
 
 * ``pip install app``
 * ``pip install app~=2.2.0``
